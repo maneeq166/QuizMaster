@@ -1,30 +1,29 @@
-import React, { useState, useEffect } from 'react';
-import { fetchQuestions, generateQuestion } from '../api/quizService';
-import QuizCard from '../components/QuizCard';
+import React, { useContext, useEffect } from 'react';
+import { QuizContext } from '../context/QuizContext';
+import { AuthContext } from '../context/AuthContext';
+import { useNavigate } from 'react-router-dom';
 
 const Quiz = () => {
-  const [questions, setQuestions] = useState([]);
+  const { user } = useContext(AuthContext);
+  const { questions, currentQuestionIndex, loadQuestions } = useContext(QuizContext);
+  const navigate = useNavigate();
 
   useEffect(() => {
-    (async () => {
-      const data = await fetchQuestions();
-      setQuestions(data);
-    })();
-  }, []);
-
-  const handleGenerate = async () => {
-    const aiQuestion = await generateQuestion();
-    if (aiQuestion) {
-      setQuestions(prev => [...prev, aiQuestion]);
+    if (!user) {
+      navigate('/login');
+    } else {
+      loadQuestions();
     }
-  };
+  }, [user, navigate]);
 
   return (
     <div>
-      <button onClick={handleGenerate}>Generate AI Question</button>
-      {questions.map((q, index) => (
-        <QuizCard key={index} question={q.question} options={q.options} onSelect={() => {}} />
-      ))}
+      <h2>Quiz</h2>
+      {questions.length > 0 ? (
+        <p>{questions[currentQuestionIndex]?.question}</p>
+      ) : (
+        <p>Loading...</p>
+      )}
     </div>
   );
 };
